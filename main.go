@@ -27,12 +27,12 @@ import (
 func main() {
 	cwd, err := os.Getwd()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("os.Getcwd(): %v\n", err)
 	}
 
 	entries, err := os.ReadDir(cwd)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("os.ReadDir(): %v\n", err)
 	}
 
 	for _, entry := range entries {
@@ -43,25 +43,28 @@ func main() {
 		p := path.Join(cwd, entry.Name())
 		mediaFile, err := os.Open(p)
 		if err != nil {
-			log.Fatal(err)
+			log.Printf("os.Open(%s): %v\n", p, err)
+			continue
 		}
 		defer mediaFile.Close()
 
 		exifData, err := exif.Decode(mediaFile)
 		if err != nil {
-			log.Fatal(err)
+			log.Printf("exif.Decode(%s): %v\n", p, err)
+			mediaFile.Close()
+			continue
 		}
 
 		lat, lon, err := exifData.LatLong()
 		if err != nil {
-			log.Printf("%s is missing GPS coordinates: %v\n", entry.Name(), err)
+			log.Printf("%s is missing GPS coordinates: %v\n", p, err)
 		}
 		_ = lat
 		_ = lon
 
 		_, err = exifData.DateTime()
 		if err != nil {
-			log.Printf("%s is missing timestamp: %v\n", entry.Name(), err)
+			log.Printf("%s is missing timestamp: %v\n", p, err)
 		}
 	}
 }
